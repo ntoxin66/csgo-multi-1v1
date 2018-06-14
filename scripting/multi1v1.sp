@@ -62,6 +62,7 @@ ConVar g_UseMVPStarsCvar;
 ConVar g_UseTeamTagsCvar;
 ConVar g_VerboseSpawnModeCvar;
 ConVar g_VersionCvar;
+ConVar g_UpdateAutoSpecTargets;
 
 /** Saved data for database interaction - be careful when using these, they may not
  *  be fetched, check multi1v1/stats.sp for a function that checks that instead of
@@ -278,6 +279,9 @@ public void OnPluginStart() {
   g_VerboseSpawnModeCvar = CreateConVar(
       "sm_multi1v1_verbose_spawns", "0",
       "Set to 1 to get info about all spawns the plugin read - useful for map creators testing against the plugin");
+  g_UpdateAutoSpecTargets = CreateConVar(
+      "sm_multi1v1_update_autospec_targets", "1",
+      "Set to 1 to have spectating players auto spectate the top player");
 
   HookConVarChange(g_EnabledCvar, EnabledChanged);
 
@@ -304,6 +308,7 @@ public void OnPluginStart() {
   HookEvent("cs_win_panel_match", Event_MatchOver);
   AddTempEntHook("Shotgun Shot", Hook_ShotgunShot);
 
+  /** Auto Spectate Targets **/
   CreateTimer(0.5, Timer_UpdateAutoSpecTargets, _, TIMER_REPEAT);
 
   /** Commands **/
@@ -1285,6 +1290,9 @@ public void PugSetup_OnSetupMenuSelect(Menu menu, int client, const char[] selec
 // arena finished.
 public Action Timer_UpdateAutoSpecTargets(Handle timer) {
   if (!g_Enabled)
+    return Plugin_Continue;
+    
+  if (!g_UpdateAutoSpecTargets.BoolValue)
     return Plugin_Continue;
 
   // Find a client in the current highest active arena.
